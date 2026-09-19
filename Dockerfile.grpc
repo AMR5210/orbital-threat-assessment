@@ -1,0 +1,22 @@
+# Serving image for the gRPC PHA-classification service
+# (src/otda/grpc_server.py) -- a third protocol alongside FastAPI
+# (Dockerfile) and SageMaker, over the same shared otda.inference.
+#
+# Expects models/champion/ to already exist locally before `docker
+# build` -- run scripts/export_champion_model.py first. Same pattern
+# as the FastAPI Dockerfile, just a different entrypoint/port.
+FROM python:3.13-slim
+
+WORKDIR /app
+
+COPY requirements-grpc.txt .
+RUN pip install --no-cache-dir -r requirements-grpc.txt
+
+COPY pyproject.toml .
+COPY src/ src/
+RUN pip install --no-cache-dir -e .
+
+COPY models/champion/ models/champion/
+
+EXPOSE 50051
+CMD ["python", "-m", "otda.grpc_server"]

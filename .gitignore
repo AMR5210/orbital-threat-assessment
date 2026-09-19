@@ -1,0 +1,70 @@
+# Raw / derived data — never commit. The source CSV alone is ~435MB
+# (GitHub hard-rejects files over 100MB), and every derived artifact is
+# regenerable from it via scripts/ingest_csv_to_duckdb.py + dbt build.
+data/raw/*
+!data/raw/.gitkeep
+*.duckdb
+*.duckdb.wal
+*.parquet
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+.user.yml
+
+# MLflow (stage 4) — local SQLite tracking store + artifacts, never committed
+mlflow.db
+mlruns/
+mlartifacts/
+
+# Exported serving model (stage 6) — regenerate via
+# scripts/export_champion_model.py, never committed.
+# Anchored to repo root (leading /) — an unanchored `models/` also
+# matches dbt/models/, which silently blocked a new dbt model file
+# from ever being staged until this was caught in Stage 7.
+/models/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Secrets / local config
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Terraform (stage 8)
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+
+# Explicitly track small committed test fixtures despite the *.duckdb/*.parquet
+# rules above, if any land under tests/fixtures/
+!tests/fixtures/**
+
+# Airflow (stage 10) — generated at container startup, never committed.
+# airflow/.env (real Fernet key etc.) is already covered by the
+# unanchored .env/.env.* rule above; airflow/.env.example is already
+# let through by !.env.example the same way.
+airflow/logs/
+airflow/plugins/
+airflow/config/
+
+# SQS batch-scoring output (otda.batch_scoring) — local run artifacts,
+# regenerate via `python -m otda.batch_scoring worker`, never committed.
+data/batch_results/

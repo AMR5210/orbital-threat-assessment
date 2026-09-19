@@ -1,0 +1,40 @@
+name: 'orbital_threat_assessment'
+version: '1.0.0'
+config-version: 2
+
+profile: 'orbital_threat_assessment'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  orbital_threat_assessment:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: table
+    marts:
+      +materialized: table
+
+seeds:
+  orbital_threat_assessment:
+    # No +schema override: dbt's default custom-schema macro would
+    # otherwise try to materialize this into a derived schema (e.g.
+    # ANALYTICS_seed), which requires CREATE SCHEMA at the database
+    # level -- a privilege TRANSFORMER doesn't have in prod (found via
+    # a real `dbt build -t prod` failure, 2026-09-18). DuckDB dev never
+    # surfaced this because DuckDB creates schemas without any
+    # permission check. Landing the seed in the target's default
+    # schema alongside the models avoids the extra grant entirely --
+    # not worth the schema segregation for one 13-row seed file.
+    asteroid_class_map:
+      +column_types:
+        class_code: INTEGER
+        class_abbr: VARCHAR
+        class_name: VARCHAR

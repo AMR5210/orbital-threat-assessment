@@ -1,0 +1,14 @@
+# Minimal dependency set for the FastAPI serving image (Dockerfile).
+# Deliberately NOT `pip install -r requirements.txt` — that file covers
+# every stage (dbt, Snowflake, Airflow, LangChain, ...) and would bloat
+# the serving image with packages the running service never touches.
+# Versions match requirements.txt's Stage 4/6 pins exactly (verified
+# 2026-09-17).
+fastapi==0.141.1
+uvicorn==0.53.0
+pydantic==2.13.5
+mlflow==3.16.1
+pandas==3.0.5
+numpy==2.5.3
+scikit-learn==1.9.1
+scipy==1.18.1

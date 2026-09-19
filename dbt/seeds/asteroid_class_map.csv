@@ -1,0 +1,14 @@
+class_code,class_abbr,class_name
+0,AMO,Amor
+1,APO,Apollo
+2,AST,Asteroid (orbit not matching a defined classification)
+3,ATE,Aten
+4,CEN,Centaur
+5,HYA,Hyperbolic Asteroid
+6,IEO,Atira (Interior-Earth Object)
+7,IMB,Inner Main-belt Asteroid
+8,MBA,Main-belt Asteroid
+9,MCA,Mars-Crossing Asteroid
+10,OMB,Outer Main-belt Asteroid
+11,TJN,Jupiter Trojan
+12,TNO,TransNeptunian Object

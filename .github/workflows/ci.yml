@@ -1,0 +1,65 @@
+name: CI
+
+# Manual trigger only (Actions tab -> CI -> Run workflow), not on every
+# push/PR, so this public-facing repo never shows a red X for a
+# transient or in-progress push. Deliberately does NOT pull the 435MB
+# source CSV either way: the dbt job builds against the small
+# committed fixture at tests/fixtures/asteroids_fixture.csv instead
+# (see scripts/generate_ci_fixture.py for how it was derived from real
+# data).
+
+on:
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.13"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install ruff
+        run: pip install ruff
+      - name: Ruff check
+        run: ruff check src scripts tests
+
+  dbt-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dbt + duckdb
+        run: pip install duckdb==1.5.5 dbt-core==1.12.5 dbt-duckdb==1.11.0
+      - name: Ingest fixture into a fresh DuckDB file
+        run: >
+          python scripts/ingest_csv_to_duckdb.py
+          --csv tests/fixtures/asteroids_fixture.csv
+          --db /tmp/ci.duckdb
+          --expected-rows 5004
+      - name: dbt build (seed + models + tests) against the fixture
+        working-directory: dbt
+        env:
+          DBT_DUCKDB_PATH: /tmp/ci.duckdb
+        run: dbt build --profiles-dir . --project-dir .
+
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install core dependencies + package
+        run: |
+          pip install duckdb==1.5.5 pandas==3.0.5 scikit-learn==1.9.1 \
+                      imbalanced-learn==0.14.2 numpy==2.5.3 scipy==1.18.1 pytest==9.1.1 \
+                      python-dotenv==1.2.3
+          pip install -e .
+      - name: pytest
+        run: pytest tests/ -v

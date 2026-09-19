@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: fct_asteroids_modeling
+    description: >
+      Default modeling population (full ~932K rows, capped + column-
+      pruned). Feeds src/otda downstream for the three-way split.
+    columns:
+      - name: spkid
+        data_tests:
+          - unique
+          - not_null
+      - name: is_pha
+        data_tests:
+          - not_null
+
+  - name: fct_asteroids_sample_100k
+    description: >
+      Legacy-parity 100K stratified sample (see model SQL for the
+      "same method, not same rows" caveat vs. the original notebook).
+    columns:
+      - name: spkid
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_asteroid_names
+    description: >
+      Lookup-only dimension (spkid -> full_name/name/pdes) for the
+      Stage 7 agent's fetch_asteroid tool. Never joined into anything
+      ML-facing — see the model SQL.
+    columns:
+      - name: spkid
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_asteroids_modeling')
+                field: spkid

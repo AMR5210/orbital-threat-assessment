@@ -1,0 +1,20 @@
+INFO 6105 — Data Science Engineering Methods and Tools
+Team 20: Venkata Sriya Kamarsu | Akshay Madavalappil Ramesh
+
+DATASET DOWNLOAD LINK
+=====================
+
+Dataset Name: NASA JPL Small-Body Database (Asteroid Dataset)
+Hosted on:    Kaggle
+
+Download URL:
+https://www.kaggle.com/datasets/sakhawat18/asteroid-dataset
+
+Original Source (NASA JPL):
+https://ssd.jpl.nasa.gov/tools/sbdb_query.html
+
+Notes:
+- File format: CSV
+- File size: 445 MB
+- Total rows: 958,524 asteroids
+- The dataset does not need to be submitted as per course instructions.

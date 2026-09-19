@@ -1,0 +1,40 @@
+// PHA classification service — a third serving protocol alongside
+// FastAPI (src/otda/api.py) and SageMaker, over the same shared
+// otda.inference.predict(). See grpc_server/README.md for why this
+// exists (typed contracts, no JSON schema drift, lower per-call
+// overhead) as something distinct from FastAPI's REST API, not a
+// redundant copy of it.
+//
+// Message shape mirrors src/otda/api.py's AsteroidFeatures /
+// PredictionResponse exactly, so both protocols expose the same
+// contract in their own idiom.
+syntax = "proto3";
+
+package otda;
+
+service PhaClassifier {
+  rpc Predict (AsteroidFeatures) returns (PredictionResponse);
+  rpc Health (HealthRequest) returns (HealthResponse);
+}
+
+message AsteroidFeatures {
+  double e = 1;          // Eccentricity
+  double q = 2;           // Perihelion distance (AU)
+  double h = 3;           // Absolute magnitude
+  bool is_neo = 4;         // Near-Earth object flag
+  int32 class_code = 5;    // Orbit class code (dbt/seeds/asteroid_class_map.csv)
+  double moid = 6;         // Minimum Orbit Intersection Distance (AU)
+}
+
+message PredictionResponse {
+  bool is_pha = 1;
+  double probability = 2;
+  string explanation = 3;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+  bool model_loaded = 2;
+}

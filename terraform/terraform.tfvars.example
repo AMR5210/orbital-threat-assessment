@@ -1,0 +1,17 @@
+# All of organization_name/account_name/user/private_key_path already
+# have real defaults in variables.tf for this project -- you likely
+# don't need this file, or TF_VAR_ overrides, at all. This is here for
+# pointing at a DIFFERENT account:
+#
+#   export TF_VAR_snowflake_organization_name="myorg"
+#   export TF_VAR_snowflake_account_name="myaccount"
+#   export TF_VAR_snowflake_user="OTDA_TF_ADMIN"
+#   export TF_VAR_snowflake_private_key_path="/path/to/rsa_key.p8"
+#
+# Key-pair auth only -- there is no password variable. Never write a
+# private key's CONTENT to a .tfvars file; private_key_path is just a
+# path and is safe to set below if you do use this file.
+
+snowflake_organization_name = "myorg"
+snowflake_account_name      = "myaccount"
+snowflake_user              = "OTDA_TF_ADMIN"

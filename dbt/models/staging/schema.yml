@@ -1,0 +1,32 @@
+version: 2
+
+models:
+  - name: stg_asteroids
+    description: >
+      Cleaned + target-encoded asteroids (Cell 5 replacement). One row
+      per asteroid with a known pha and neo flag and a class present in
+      the seed. ~932K rows expected (932,335 in the original notebook
+      run, minus 4 further rows here — see the neo-null fix documented
+      in the model).
+    columns:
+      - name: spkid
+        data_tests:
+          - unique
+          - not_null
+      - name: is_pha
+        data_tests:
+          - not_null
+      - name: is_neo
+        data_tests:
+          - not_null
+      - name: class_code
+        description: Stable class code from the asteroid_class_map seed.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('asteroid_class_map')
+                field: class_code
+          - accepted_values:
+              arguments:
+                values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]

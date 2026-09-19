@@ -1,0 +1,104 @@
+# Orbital Threat Assessment — pinned dependencies
+#
+# Target: Python 3.13.15 (Windows).
+#
+# For the FastAPI Docker serving image specifically, see
+# requirements-serving.txt instead — a deliberately minimal subset so
+# the image doesn't drag in dbt/Snowflake/Airflow/LangChain.
+#
+# Grouped by the stage that introduces them (see project plan).
+# "Stage 0-2 (core)" is the only group actually installed and verified
+# so far (pip-resolved on 2026-09-17 against this venv). Every later
+# group is an UNVERIFIED placeholder pin — latest known version at
+# write time, not yet installed, not yet checked for 3.13 compatibility
+# or for conflicts with the core group. Re-resolve and pin for real when
+# each stage starts.
+
+# --- Stage 0-2: data layer + core pipeline ---
+duckdb==1.5.5
+dbt-core==1.12.5
+dbt-duckdb==1.11.0
+pandas==3.0.5
+scikit-learn==1.9.1
+imbalanced-learn==0.14.2
+numpy==2.5.3
+scipy==1.18.1
+pytest==9.1.1
+python-dotenv==1.2.3  # used by tests/conftest.py + every credential-reading
+                      # script; must be in CI's pytest install list too --
+                      # conftest.py's top-level import broke collection for
+                      # the whole job without it (found the hard way, 2026-09-18)
+ruff==0.16.8
+
+# --- Stage 4: experiment tracking (verified 2026-09-17) ---
+mlflow==3.16.1
+
+# --- Stage 5: unsupervised analysis (verified 2026-09-17) ---
+hdbscan==0.8.44
+# scipy already pinned above (core group) — hdbscan/igraph both depend on it
+igraph==1.0.0          # k-NN graph + Louvain community detection
+faiss-cpu==1.15.1      # approximate k-NN for the similarity graph
+
+# --- Stage 6: serving (verified 2026-09-17) ---
+fastapi==0.141.1
+uvicorn==0.53.0
+pydantic==2.13.5
+httpx2==2.13.0         # required by fastapi.testclient.TestClient (tests/test_api.py);
+                       # plain httpx is now deprecated for this purpose by starlette
+
+# --- Stage 7: LangChain agent (verified 2026-09-17) ---
+langchain==1.4.1
+langchain-anthropic==1.7.2
+langgraph==1.2.11      # transitive dependency of langchain.agents.create_agent
+
+# --- Stage 8: Snowflake/Snowpark (verified 2026-09-17 against a real
+# account — key-pair auth confirmed working via `dbt debug -t prod`
+# and `terraform plan`, not just installed) ---
+snowflake-connector-python==4.7.4
+snowflake-snowpark-python==1.55.0
+dbt-snowflake==1.12.1  # dbt's Snowflake adapter -- not pinned until now,
+                       # `dbt debug -t prod` failed with "No module
+                       # named 'dbt.adapters.snowflake'" without it
+
+# --- Stage 9: Snowflake Model Registry, SageMaker, DynamoDB (verified
+# 2026-09-17 — installed and imports confirmed; NOT run live, no AWS
+# credentials/account exist yet). Note sagemaker jumped 2.x -> 3.x from
+# the earlier placeholder pin; no code here uses the `sagemaker` SDK's
+# Python classes directly (deploy_to_sagemaker.py shells out to the
+# `mlflow deployments`/`mlflow sagemaker` CLI instead), so this jump
+# didn't require any rework — just updating the pin to match reality.
+snowflake-ml-python==2.1.0
+boto3==1.43.97
+sagemaker==3.22.0
+
+# --- Stage 10: orchestration (verified 2026-09-17 — actually run live,
+# see airflow/README.md) ---
+# apache-airflow is deliberately NOT pip-installed into this venv at
+# all: it runs via its own Docker image (airflow/Dockerfile, built on
+# apache/airflow:3.3.2-python3.13), matching how real Airflow
+# deployments are almost always run. Pinning it here would be
+# misleading — nothing in this repo's Python environment imports it.
+
+# --- Stage 11: narrative notebook (verified 2026-09-18 — notebooks/
+# pha_analysis.ipynb executed end to end via nbconvert, zero errors) ---
+matplotlib==3.11.2
+ipykernel==7.3.0
+nbformat==5.11.1
+nbclient==0.11.0
+nbconvert==7.17.1
+
+# --- Post-Stage-11 additions (verified 2026-09-18) ---
+# Elasticsearch: fuzzy asteroid-name fallback for the agent's
+# fetch_asteroid tool (elasticsearch/docker-compose.yaml, local only).
+# Client major version (9.x) matches the server image pinned there.
+elasticsearch==9.5.1
+
+# gRPC: a third serving protocol over otda.inference (grpc_server/README.md).
+# protobuf pinned explicitly now, not left transitive -- grpcio-tools
+# (dev-time only, used to regenerate otda/pha_pb2*.py, NOT installed
+# here) defaults to protobuf>=7.0, which breaks dbt-adapters/
+# dbt-common/sagemaker-core/snowflake-snowpark-python, all pinned
+# <7.0. Found the hard way; see grpc_server/README.md for the full
+# version-pinning story.
+grpcio==1.84.0
+protobuf==6.33.6

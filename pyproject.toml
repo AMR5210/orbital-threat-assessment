@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "otda"
+version = "0.1.0"
+description = "Orbital Threat Assessment — PHA classification pipeline"
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+# Generated gRPC stubs (grpc_server/README.md documents the exact
+# regeneration command) -- "DO NOT EDIT" per their own header, so lint
+# fixes here would just be reverted by the next regeneration.
+extend-exclude = ["src/otda/pha_pb2.py", "src/otda/pha_pb2.pyi", "src/otda/pha_pb2_grpc.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

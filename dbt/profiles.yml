@@ -1,0 +1,57 @@
+# dbt profile for this project. Kept inside the repo (not ~/.dbt/) so the
+# project is self-contained — point dbt at it explicitly:
+#   dbt build --project-dir dbt --profiles-dir dbt
+# or export DBT_PROFILES_DIR=dbt and drop the flag.
+#
+# `dev` (DuckDB) is the only target that needs to work today — free,
+# local, no credentials. `prod` (Snowflake) is wired against the
+# objects terraform/main.tf provisions — same names as its outputs
+# (warehouse_name/database_name/schema_name/role_name), so applying
+# that config and setting these env vars is all `prod` needs.
+# `account` here is dbt-snowflake's own combined "org-account"
+# identifier format — a different shape from Terraform's split
+# organization_name/account_name provider fields; that's each tool's
+# own correct format, not an inconsistency to fix.
+#
+# Key-pair auth, not password (Snowflake's Aug-Oct 2026 phase requires
+# it for legacy service accounts; using it proactively here even
+# though this specific user is a human/personal login, not a
+# newly-created service account subject to the hard TYPE=SERVICE
+# requirement). account/user/private_key_path have no real default in
+# this public repo (they identify a specific Snowflake account) -- set
+# them via env var. role/warehouse/database/schema below are just this
+# project's chosen resource names, not identifying, so they keep real
+# defaults, same as before.
+#
+# No `authenticator:` field — deliberately, not an oversight. dbt-
+# snowflake 1.12.1 does not recognize "keypair" as an authenticator
+# value at all (confirmed by reading its connections.py directly after
+# `dbt debug` rejected it with "Unknown authenticator: keypair"); the
+# adapter derives key-pair auth purely from private_key_path being set.
+#
+# Verified 2026-09-17: account = CURRENT_ORGANIZATION_NAME() +
+# "-" + CURRENT_ACCOUNT_NAME() -- NOT CURRENT_ACCOUNT(), which returns
+# the legacy account LOCATOR (a different identifier that happened to
+# also look plausible here and would have caused a silent connection
+# failure if used instead).
+
+orbital_threat_assessment:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', '../data/dev.duckdb') }}"
+      schema: main
+      threads: 4
+
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT', 'myorg-myaccount') }}"
+      user: "{{ env_var('SNOWFLAKE_USER', 'your_snowflake_user') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH', '~/.snowflake/keys/rsa_key.p8') }}"
+      private_key_passphrase: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PASSPHRASE', '') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'TRANSFORMER') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'ORBITAL_THREAT_ASSESSMENT') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'OTDA_WH') }}"
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'ANALYTICS') }}"
+      threads: 4

@@ -1,0 +1,15 @@
+# Minimal dependency set for the gRPC serving image (Dockerfile.grpc).
+# Same "don't drag in dbt/Snowflake/Airflow/LangChain" rationale as
+# requirements-serving.txt. protobuf is pinned explicitly (not left to
+# grpcio's own resolution) because it must stay <7.0 to match the
+# generated stub files under src/otda/pha_pb2*.py -- see
+# grpc_server/README.md for why grpcio-tools (needed only to
+# regenerate those, not to run this server) can't just use its own
+# latest default protobuf.
+grpcio==1.84.0
+protobuf==6.33.6
+mlflow==3.16.1
+pandas==3.0.5
+numpy==2.5.3
+scikit-learn==1.9.1
+scipy==1.18.1

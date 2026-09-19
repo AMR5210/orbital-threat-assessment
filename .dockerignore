@@ -1,0 +1,17 @@
+.venv/
+.git/
+.github/
+data/
+dbt/
+mlruns/
+mlflow.db
+.pytest_cache/
+__pycache__/
+*.pyc
+tests/
+legacy/
+Images/
+RESULTS.md
+CLUSTERING_RESULTS.md
+.gitignore
+requirements.txt

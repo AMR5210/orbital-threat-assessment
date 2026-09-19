@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: >
+      Raw NASA JPL Small-Body Database export (via Kaggle mirror), loaded
+      unmodified by scripts/ingest_csv_to_duckdb.py. See legacy/DatasetLink.txt.
+    tables:
+      - name: asteroids
+        description: One row per catalogued asteroid, 45 columns, 958,524 rows.
+        columns:
+          - name: spkid
+            description: JPL SPK-ID. Stable numeric identifier, used as the grain key.
+            data_tests:
+              - unique
+              - not_null
+          - name: pha
+            description: "Raw PHA flag: 'Y' / 'N' / null (2.08% missing)."
+          - name: neo
+            description: "Raw NEO flag: 'Y' / 'N' / null (4 rows missing, all class=HYA)."
+          - name: class
+            description: Raw orbit classification abbreviation (13 distinct values).

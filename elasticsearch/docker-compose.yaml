@@ -1,0 +1,30 @@
+# Single-node Elasticsearch for fuzzy asteroid-name lookup only —
+# scoped to dim_asteroid_names (spkid/full_name/name/pdes), not a
+# general search feature over the whole dataset. Local Docker only, no
+# cloud account, no new credentials, same pattern as ../airflow/.
+#
+# xpack.security.enabled=false + no TLS: fine for a local, single-user
+# dev lookup index with no sensitive data: never expose this port
+# outside localhost. Image version (9.5.4) and env vars match Elastic's
+# current Docker install docs.
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.4
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+
+volumes:
+  es-data:
